@@ -16,7 +16,7 @@ provider "helm" {
 resource "terraform_data" "wait_after_helm_destroy" {
   input = "wait_after_helm_destroy"
 
-  provisioner "local-exec" {  
+  provisioner "local-exec" {
     when    = destroy
     command = "sleep 120"
   }
@@ -58,6 +58,7 @@ resource "helm_release" "vault" {
     ui:
       enabled: true
       serviceType: LoadBalancer
+      loadBalancerSourceRanges: ["${local.my_ip_cidr}"]
       annotations:
         service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
         service.beta.kubernetes.io/aws-load-balancer-type: external
@@ -67,4 +68,20 @@ resource "helm_release" "vault" {
   depends_on = [
     terraform_data.wait_after_helm_destroy
   ]
+}
+
+data "kubernetes_service_v1" "vault_ui" {
+  metadata {
+    name      = "vault-ui"
+    namespace = helm_release.vault.namespace
+  }
+
+  depends_on = [
+    helm_release.vault
+  ]
+}
+
+output "vault_ui_lb_hostname" {
+  description = "External Vault URL for UI/API service."
+  value       = try(format("http://%s:8200", data.kubernetes_service_v1.vault_ui.status[0].load_balancer[0].ingress[0].hostname), null)
 }
