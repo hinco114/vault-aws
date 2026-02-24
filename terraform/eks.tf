@@ -1,10 +1,17 @@
 locals {
-  name   = "my-eks-cluster"
+  name   = "vault-aws"
   region = "ap-northeast-2"
 }
 
 provider "aws" {
   region = local.region
+  default_tags {
+    tags = {
+      Project     = local.name
+      Environment = "dev"
+      Terraform   = "true"
+    }
+  }
 }
 
 data "http" "my_ip" {
@@ -62,11 +69,6 @@ module "eks" {
 
   # 테라폼을 실행하는 IAM 사용자/역할에 클러스터 관리자 권한 부여
   enable_cluster_creator_admin_permissions = true
-
-  tags = {
-    Environment = "dev"
-    Terraform   = "true"
-  }
 }
 
 provider "kubernetes" {
