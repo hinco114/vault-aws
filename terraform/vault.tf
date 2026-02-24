@@ -12,6 +12,20 @@ provider "helm" {
   }
 }
 
+# Helm Destroy 시 EKS 리소스가 삭제된 후 120초 동안 대기합니다. (연관 리소스가 잘 삭제되도록 하기 위함)
+resource "terraform_data" "wait_after_helm_destroy" {
+  input = "wait_after_helm_destroy"
+
+  provisioner "local-exec" {  
+    when    = destroy
+    command = "sleep 120"
+  }
+
+  depends_on = [
+    module.eks
+  ]
+}
+
 # Vault Helm Chart 를 사용하여 Vault 를 설치합니다.
 resource "helm_release" "vault" {
   name             = "vault"
@@ -43,10 +57,14 @@ resource "helm_release" "vault" {
             }
     ui:
       enabled: true
+      serviceType: LoadBalancer
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+        service.beta.kubernetes.io/aws-load-balancer-type: external
     EOF
   ]
 
   depends_on = [
-    module.eks
+    terraform_data.wait_after_helm_destroy
   ]
 }
