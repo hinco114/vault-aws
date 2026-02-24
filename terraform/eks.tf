@@ -14,14 +14,17 @@ provider "aws" {
   }
 }
 
+# 현재 접속한 IP 정보를 가져옵니다.
 data "http" "my_ip" {
   url = "https://ifconfig.me/ip"
 }
 
+# 현재 접속한 IP를 CIDR 형식으로 변환합니다.
 locals {
   my_ip_cidr = "${chomp(data.http.my_ip.response_body)}/32"
 }
 
+# VPC 모듈을 사용하여 VPC 를 생성합니다.
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.6.0"
@@ -37,17 +40,16 @@ module "vpc" {
   single_nat_gateway   = true
   enable_dns_hostnames = true
 
-  # 외부 로드밸런서를 위한 퍼블릭 서브넷 태그
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
   }
 
-  # 내부 로드밸런서를 위한 프라이빗 서브넷 태그
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
   }
 }
 
+# EKS 클러스터를 생성합니다.
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
@@ -55,6 +57,7 @@ module "eks" {
   name               = local.name
   kubernetes_version = "1.35"
 
+  # EKS 클러스터 엔드포인트에 외부에서 접근 가능하도록 설정 (현재 접속한 IP만 허용)
   endpoint_public_access       = true
   endpoint_public_access_cidrs = [local.my_ip_cidr]
 
@@ -71,6 +74,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 }
 
+# Kubernetes Provider 를 설정합니다. (EKS 클러스터에 접근하기 위한 설정)
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
@@ -82,6 +86,7 @@ provider "kubernetes" {
   }
 }
 
+# StorageClass 를 생성합니다. (EBS CSI 프로비저너 사용, Vault HA 모드에서 필요)
 resource "kubernetes_storage_class_v1" "gp3" {
   depends_on = [module.eks]
 
