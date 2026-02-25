@@ -1,0 +1,2 @@
+export VAULT_ADDR=""
+export VAULT_TOKEN=""
