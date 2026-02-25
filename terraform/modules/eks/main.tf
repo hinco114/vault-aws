@@ -1,38 +1,12 @@
-locals {
-  name   = "vault-aws"
-  region = "ap-northeast-2"
-}
-
-provider "aws" {
-  region = local.region
-  default_tags {
-    tags = {
-      Project     = local.name
-      Environment = "dev"
-      Terraform   = "true"
-    }
-  }
-}
-
-# 현재 접속한 IP 정보를 가져옵니다.
-data "http" "my_ip" {
-  url = "https://ifconfig.me/ip"
-}
-
-# 현재 접속한 IP를 CIDR 형식으로 변환합니다.
-locals {
-  my_ip_cidr = "${chomp(data.http.my_ip.response_body)}/32"
-}
-
 # VPC 모듈을 사용하여 VPC 를 생성합니다.
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.6.0"
 
-  name = "${local.name}-vpc"
+  name = "${var.name}-vpc"
   cidr = "10.1.0.0/16"
 
-  azs             = ["${local.region}a", "${local.region}b", "${local.region}c"]
+  azs             = ["${var.region}a", "${var.region}b", "${var.region}c"]
   private_subnets = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
   public_subnets  = ["10.1.101.0/24", "10.1.102.0/24", "10.1.103.0/24"]
 
@@ -50,16 +24,16 @@ module "vpc" {
 }
 
 # EKS 클러스터를 생성합니다.
-module "eks" {
+module "eks_cluster" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
 
-  name               = local.name
+  name               = var.name
   kubernetes_version = "1.35"
 
   # EKS 클러스터 엔드포인트에 외부에서 접근 가능하도록 설정 (현재 접속한 IP만 허용)
   endpoint_public_access       = true
-  endpoint_public_access_cidrs = [local.my_ip_cidr]
+  endpoint_public_access_cidrs = [var.my_ip_cidr]
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -76,19 +50,19 @@ module "eks" {
 
 # Kubernetes Provider 를 설정합니다. (EKS 클러스터에 접근하기 위한 설정)
 provider "kubernetes" {
-  host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  host                   = module.eks_cluster.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks_cluster.cluster_certificate_authority_data)
 
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
     command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
+    args        = ["eks", "get-token", "--cluster-name", module.eks_cluster.cluster_name]
   }
 }
 
 # StorageClass 를 생성합니다. (EBS CSI 프로비저너 사용, Vault HA 모드에서 필요)
 resource "kubernetes_storage_class_v1" "gp3" {
-  depends_on = [module.eks]
+  depends_on = [module.eks_cluster]
 
   metadata {
     name = "gp3"
