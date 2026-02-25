@@ -25,14 +25,10 @@ provider "kubernetes" {
 
 # Helm Destroy 시 EKS 리소스가 삭제된 후 120초 동안 대기합니다. (연관 리소스가 잘 삭제되도록 하기 위함)
 resource "terraform_data" "wait_after_helm_destroy" {
-  input = "wait_after_helm_destroy"
-
   provisioner "local-exec" {
     when    = destroy
     command = "sleep 120"
   }
-
-  depends_on = []
 }
 
 locals {
@@ -114,6 +110,9 @@ resource "helm_release" "vault" {
     <<-EOF
     server:
       affinity: ""
+      persistentVolumeClaimRetentionPolicy:
+        whenDeleted: Delete
+        whenScaled: Retain
       ha:
         enabled: true
         replicas: 3
