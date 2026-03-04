@@ -27,3 +27,7 @@ output "demo_secret_access_key" {
   sensitive   = true
 }
 
+output "demo_assume_role_arn" {
+  description = "Vault STS AssumeRole 대상 IAM Role ARN."
+  value       = module.aws_credential.assume_role_arn
+}

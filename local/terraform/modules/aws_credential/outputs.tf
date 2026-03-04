@@ -16,3 +16,9 @@ output "secret_access_key" {
   value       = aws_iam_access_key.demo_user.secret
   sensitive   = true
 }
+
+# Vault STS AssumeRole 대상 IAM Role ARN 을 외부로 전달
+output "assume_role_arn" {
+  description = "Vault STS AssumeRole 대상 IAM Role ARN."
+  value       = aws_iam_role.vault_sts_target.arn
+}
