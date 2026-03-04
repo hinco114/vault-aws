@@ -3,28 +3,27 @@ locals {
   kube_context = "docker-desktop"
 }
 
-terraform {
-  required_providers {
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.17"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.35"
-    }
-  }
-}
-
+# Vault Module
 module "vault" {
   source = "./modules/vault"
 
   kubeconfig_path    = "~/.kube/config"
   kube_context       = local.kube_context
-  vault_ui_node_port = 30200
 }
 
-output "vault_ui_url" {
-  description = "로컬 Vault UI URL."
-  value       = module.vault.vault_ui_url
+# AWS Credential Module
+module "aws_credential" {
+  source = "./modules/aws_credential"
 }
+
+output "demo_access_key_id" {
+  description = "예제용 Access Key ID."
+  value       = module.aws_credential.access_key_id
+}
+
+output "demo_secret_access_key" {
+  description = "예제용 Secret Access Key."
+  value       = module.aws_credential.secret_access_key
+  sensitive   = true
+}
+

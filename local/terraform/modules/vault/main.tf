@@ -1,3 +1,16 @@
+terraform {
+  required_providers {
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.17"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.35"
+    }
+  }
+}
+
 # Helm Provider 를 설정합니다. (Docker Desktop k8s 클러스터에 접근하기 위한 설정)
 provider "helm" {
   kubernetes {
