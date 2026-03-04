@@ -5,3 +5,8 @@ output "vault_ui_lb_hostname" {
     null,
   )
 }
+
+output "vault_role_arn" {
+  description = "ARN of the Vault role."
+  value       = aws_iam_role.vault_role.arn
+}

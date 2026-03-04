@@ -49,3 +49,8 @@ output "vault_ui_lb_hostname" {
   description = "External Vault URL for UI/API service."
   value       = module.vault.vault_ui_lb_hostname
 }
+
+output "vault_role_arn" {
+  description = "ARN of the Vault role."
+  value       = module.vault.vault_role_arn
+}
