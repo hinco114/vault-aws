@@ -1,2 +1,7 @@
 export VAULT_ADDR=""
 export VAULT_TOKEN=""
+export AWS_REGION=""
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+export VAULT_ROLE_ARN=""
+export VAULT_ASSUME_TARGET_ROLE_ARN=""
