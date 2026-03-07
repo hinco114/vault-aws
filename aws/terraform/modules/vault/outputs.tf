@@ -10,3 +10,8 @@ output "vault_role_arn" {
   description = "ARN of the Vault role."
   value       = aws_iam_role.vault_role.arn
 }
+
+output "vault_sts_target_role_arn" {
+  description = "ARN of the target role for Vault to assume via STS."
+  value       = aws_iam_role.vault_sts_target.arn
+}

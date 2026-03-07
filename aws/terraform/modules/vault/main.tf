@@ -50,6 +50,36 @@ resource "aws_iam_policy" "vault_policy" {
         ]
         Effect   = "Allow"
         Resource = "*"
+      },
+      {
+        Action = [
+          "iam:CreateUser",
+          "iam:DeleteUser",
+          "iam:CreateAccessKey",
+          "iam:DeleteAccessKey",
+          "iam:ListAccessKeys",
+          "iam:PutUserPolicy",
+          "iam:DeleteUserPolicy",
+          "iam:ListUserPolicies",
+          "iam:AttachUserPolicy",
+          "iam:DetachUserPolicy",
+          "iam:ListAttachedUserPolicies",
+          "iam:ListGroupsForUser",
+          "iam:AddUserToGroup",
+          "iam:RemoveUserFromGroup",
+          "iam:GetUser",
+          "iam:TagUser"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action = [
+          "sts:GetCallerIdentity",
+          "sts:AssumeRole"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
       }
     ]
   })
@@ -83,6 +113,30 @@ resource "aws_iam_role" "vault_role" {
 resource "aws_iam_role_policy_attachment" "vault_policy_attachment" {
   role       = aws_iam_role.vault_role.name
   policy_arn = aws_iam_policy.vault_policy.arn
+}
+
+# 대상 Role 의 Trust Relationship 설정 (Vault Server Role 이 Assume 할 수 있도록 허용)
+data "aws_iam_policy_document" "vault_sts_target_trust" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    effect  = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_role.vault_role.arn]
+    }
+  }
+}
+
+# Vault STS AssumeRole 대상 IAM Role 생성
+resource "aws_iam_role" "vault_sts_target" {
+  name               = "${local.vault_role_name}-sts-target"
+  assume_role_policy = data.aws_iam_policy_document.vault_sts_target_trust.json
+}
+
+# 대상 Role 에 SecretsManager 권한 부여 (테스트용)
+resource "aws_iam_role_policy_attachment" "vault_sts_target_secrets_rw" {
+  role       = aws_iam_role.vault_sts_target.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
 }
 
 # KMS Key 를 생성합니다.
