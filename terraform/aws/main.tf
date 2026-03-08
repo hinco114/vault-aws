@@ -39,6 +39,7 @@ module "eks" {
 module "iam" {
   source            = "../modules/aws-iam-auth"
   use_irsa          = true
+  use_kms           = true
   oidc_provider_arn = module.eks.oidc_provider_arn
   oidc_issuer_url   = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
   kms_key_arn       = aws_kms_key.vault.arn
@@ -58,6 +59,10 @@ resource "aws_kms_alias" "vault" {
 
 module "vault" {
   source = "../modules/vault-server"
+
+  # kubeconfig 기반 정적 provider 를 사용하므로 Terraform 이 EKS 의존성을 자동 감지 못함
+  # → destroy 시 EKS 보다 먼저 Helm 차트가 삭제되도록 명시
+  depends_on = [module.eks]
 
   helm_values = [
     <<-EOF
@@ -159,5 +164,6 @@ resource "helm_release" "vso" {
   namespace        = "vault-secrets-operator"
   create_namespace = true
 
-  depends_on = [module.vault]
+  # module.vault 이후에 설치, destroy 시에도 vault 및 EKS 보다 먼저 삭제되도록 명시
+  depends_on = [module.vault, module.eks]
 }
