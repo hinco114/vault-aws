@@ -120,6 +120,35 @@ output "vault_sts_target_role_arn" {
   value = module.iam.sts_target_role_arn
 }
 
+# Application IRSA Role (Vault 인증 전용)
+# - Vault Auth Method: Kubernetes
+# - 이 Role 을 ServiceAccount 에 어노테이션으로 지정하면 Vault 가 해당 Pod 의 identity 를 검증할 수 있음
+resource "aws_iam_role" "app_irsa" {
+  name = "sample-app2-vault-irsa-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Effect = "Allow"
+      Principal = {
+        Federated = module.eks.oidc_provider_arn
+      }
+      Condition = {
+        StringEquals = {
+          "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub" = "system:serviceaccount:sample-app2-ns:sample-app2-sa"
+          "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:aud" = "sts.amazonaws.com"
+        }
+      }
+    }]
+  })
+}
+
+output "app_irsa_role_arn" {
+  description = "Application Vault IRSA Role ARN."
+  value       = aws_iam_role.app_irsa.arn
+}
+
 
 # VSO (Vault Secrets Operator) 설치
 # https://github.com/hashicorp/vault-secrets-operator
