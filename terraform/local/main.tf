@@ -64,3 +64,6 @@ output "iam_secret_access_key" {
 output "vault_sts_target_role_arn" {
   value = module.iam.sts_target_role_arn
 }
+output "vault_ui_url" {
+  value = module.vault.vault_ui_url
+}

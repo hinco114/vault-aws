@@ -104,7 +104,7 @@ module "vault" {
 }
 
 output "vault_ui_url" {
-  value = module.vault.vault_ui_hostname
+  value = module.vault.vault_ui_url
 }
 output "vault_sts_target_role_arn" {
   value = module.iam.sts_target_role_arn

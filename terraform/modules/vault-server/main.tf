@@ -39,6 +39,6 @@ data "kubernetes_service_v1" "vault_ui" {
 }
 
 # Vault UI URL
-output "vault_ui_hostname" {
-  value = length(data.kubernetes_service_v1.vault_ui.status[0].load_balancer[0].ingress) > 0 ? data.kubernetes_service_v1.vault_ui.status[0].load_balancer[0].ingress[0].hostname : "localhost"
+output "vault_ui_url" {
+  value = "http://${length(data.kubernetes_service_v1.vault_ui.status[0].load_balancer[0].ingress[0].hostname) > 0 ? data.kubernetes_service_v1.vault_ui.status[0].load_balancer[0].ingress[0].hostname : "localhost"}:8200"
 }
