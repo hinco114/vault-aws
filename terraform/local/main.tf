@@ -1,7 +1,9 @@
 locals {
   name                = "vault-local"
-  kube_config_path    = "~/.kube/config"
-  kube_config_context = "docker-desktop"
+  aws_profile         = "default"
+  aws_region          = "ap-northeast-2"
+  kube_config_path    = "~/.kube/config" # 반드시 사전에 config 가 존재해야 함
+  kube_config_context = "docker-desktop" # 반드시 사전에 context 가 존재해야 함
 }
 
 provider "helm" {
@@ -14,6 +16,11 @@ provider "helm" {
 provider "kubernetes" {
   config_path    = local.kube_config_path
   config_context = local.kube_config_context
+}
+
+provider "aws" {
+  profile = local.aws_profile
+  region  = local.aws_region
 }
 
 module "iam" {
