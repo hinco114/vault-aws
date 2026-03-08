@@ -106,6 +106,16 @@ module "vault" {
 output "vault_ui_url" {
   value = module.vault.vault_ui_url
 }
+output "vault_role_arn" {
+  value = module.iam.vault_role_arn
+}
+output "iam_access_key_id" {
+  value = module.iam.iam_access_key_id
+}
+output "iam_secret_access_key" {
+  value     = module.iam.iam_secret_access_key
+  sensitive = true
+}
 output "vault_sts_target_role_arn" {
   value = module.iam.sts_target_role_arn
 }

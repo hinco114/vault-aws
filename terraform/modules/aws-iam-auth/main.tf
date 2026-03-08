@@ -120,11 +120,11 @@ output "vault_role_arn" {
 }
 
 output "iam_access_key_id" {
-  value = var.use_irsa ? "" : aws_iam_access_key.vault_user_key.id
+  value = aws_iam_access_key.vault_user_key.id
 }
 
 output "iam_secret_access_key" {
-  value     = var.use_irsa ? "" : aws_iam_access_key.vault_user_key.secret
+  value     = aws_iam_access_key.vault_user_key.secret
   sensitive = true
 }
 
