@@ -1,24 +1,36 @@
 locals {
-  name                = "vault-aws"
-  region              = "ap-northeast-2"
-  kube_config_path    = "~/.kube/config"
-  kube_config_context = "arn:aws:eks:ap-northeast-2:341689148868:cluster/vault-aws"
+  name        = "vault-aws"
+  aws_profile = "default"
+  region      = "ap-northeast-2"
 }
 
 provider "aws" {
-  region = local.region
+  region  = local.region
+  profile = local.aws_profile
 }
 
 provider "helm" {
   kubernetes {
-    config_path    = local.kube_config_path
-    config_context = local.kube_config_context
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args        = ["eks", "get-token", "--cluster-name", local.name, "--region", local.region, "--profile", local.aws_profile]
+    }
   }
 }
 
 provider "kubernetes" {
-  config_path    = local.kube_config_path
-  config_context = local.kube_config_context
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", local.name, "--region", local.region, "--profile", local.aws_profile]
+  }
 }
 
 # 내 IP를 CIDR로 변환
