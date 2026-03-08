@@ -89,7 +89,30 @@ resource "aws_iam_role_policy_attachment" "vault_irsa_attach" {
   policy_arn = aws_iam_policy.vault_aws_access.arn
 }
 
+# (EKS) Vault Auto-unseal 을 위한 KMS Policy
+resource "aws_iam_policy" "vault_kms" {
+  count = var.kms_key_arn != "" ? 1 : 0
+  name  = "vault-kms-unseal-${random_id.suffix.hex}"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ]
+      Effect   = "Allow"
+      Resource = var.kms_key_arn
+    }]
+  })
+}
 
+# (EKS) Vault IRSA Role 에 KMS Policy Attach
+resource "aws_iam_role_policy_attachment" "vault_irsa_kms" {
+  count      = var.use_irsa && var.kms_key_arn != "" ? 1 : 0
+  role       = aws_iam_role.vault_irsa[0].name
+  policy_arn = aws_iam_policy.vault_kms[0].arn
+}
 
 # --- Outputs ---
 output "vault_role_arn" {

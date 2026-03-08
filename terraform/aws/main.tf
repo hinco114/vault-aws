@@ -41,6 +41,7 @@ module "iam" {
   use_irsa          = true
   oidc_provider_arn = module.eks.oidc_provider_arn
   oidc_issuer_url   = replace(module.eks.cluster_oidc_issuer_url, "https://", "")
+  kms_key_arn       = aws_kms_key.vault.arn
 }
 
 # Auto unseal을 위한 KMS Key 생성
