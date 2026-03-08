@@ -95,7 +95,7 @@ module "vault" {
     ui:
       enabled: true
       serviceType: LoadBalancer
-      loadBalancerSourceRanges: ["${local.my_ip_cidr}"]
+      loadBalancerSourceRanges: ["${local.my_ip_cidr}", "${module.eks.nat_public_ips[0]}/32"]
       annotations:
         service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
         service.beta.kubernetes.io/aws-load-balancer-type: external

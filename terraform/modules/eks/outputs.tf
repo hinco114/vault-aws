@@ -22,3 +22,8 @@ output "oidc_provider_arn" {
   description = "IAM OIDC provider ARN attached to the EKS cluster."
   value       = module.eks_cluster.oidc_provider_arn
 }
+
+output "nat_public_ips" {
+  description = "NAT Gateway public IP addresses."
+  value       = module.vpc.nat_public_ips
+}
