@@ -119,3 +119,16 @@ output "iam_secret_access_key" {
 output "vault_sts_target_role_arn" {
   value = module.iam.sts_target_role_arn
 }
+
+
+# VSO (Vault Secrets Operator) 설치
+# https://github.com/hashicorp/vault-secrets-operator
+resource "helm_release" "vso" {
+  name             = "vault-secrets-operator"
+  repository       = "https://helm.releases.hashicorp.com"
+  chart            = "vault-secrets-operator"
+  namespace        = "vault-secrets-operator"
+  create_namespace = true
+
+  depends_on = [module.vault]
+}
