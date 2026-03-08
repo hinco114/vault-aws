@@ -1,4 +1,4 @@
-# VPC 모듈을 사용하여 VPC 를 생성합니다.
+# VPC 모듈을 사용하여 VPC 를 생성
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.6.0"
@@ -23,7 +23,7 @@ module "vpc" {
   }
 }
 
-# EKS 클러스터를 생성합니다.
+# EKS 클러스터를 생성
 module "eks_cluster" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
@@ -48,7 +48,7 @@ module "eks_cluster" {
   enable_cluster_creator_admin_permissions = true
 }
 
-# Kubernetes Provider 를 설정합니다. (EKS 클러스터에 접근하기 위한 설정)
+# Kubernetes Provider 를 설정 (EKS 클러스터에 접근하기 위한 설정)
 provider "kubernetes" {
   host                   = module.eks_cluster.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks_cluster.cluster_certificate_authority_data)
@@ -60,7 +60,7 @@ provider "kubernetes" {
   }
 }
 
-# StorageClass 를 생성합니다. (EBS CSI 프로비저너 사용, Vault HA 모드에서 필요)
+# StorageClass 를 생성 (EBS CSI 프로비저너 사용, Vault HA 모드에서 필요)
 resource "kubernetes_storage_class_v1" "gp3" {
   depends_on = [module.eks_cluster]
 
