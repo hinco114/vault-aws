@@ -35,6 +35,9 @@ module "vault" {
     <<-EOF
     server:
       affinity: ""
+      persistentVolumeClaimRetentionPolicy:
+        whenDeleted: Delete
+        whenScaled: Retain
       ha:
         enabled: true
         replicas: 3
