@@ -1,3 +1,12 @@
+# 현재 계정에서 사용 가능한 AZ 목록을 조회한다.
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+locals {
+  azs = slice(data.aws_availability_zones.available.names, 0, 3)
+}
+
 # VPC 모듈을 사용하여 VPC 를 생성
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -6,7 +15,7 @@ module "vpc" {
   name = "${var.name}-vpc"
   cidr = "10.1.0.0/16"
 
-  azs             = ["${var.region}a", "${var.region}b", "${var.region}c"]
+  azs             = local.azs
   private_subnets = ["10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24"]
   public_subnets  = ["10.1.101.0/24", "10.1.102.0/24", "10.1.103.0/24"]
 
